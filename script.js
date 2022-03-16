@@ -1,99 +1,87 @@
 const container = document.querySelector(".container");
-const notOccupiedSeats = document.querySelectorAll(".row .seat:not(.occupied)");
-const allSeats = document.querySelectorAll(".row .seat");
+const allSeats = document.querySelectorAll(".container .seat");
+const notOccupiedSeats = document.querySelector(
+  ".container .seat:not(.occupied)"
+);
 const count = document.getElementById("count");
-const total = document.getElementById("total");
 const film = document.getElementById("film");
+const total = document.getElementById("total");
 const movieSelectBox = document.getElementById("movie");
 
-// current price
-let ticketPriceFromSelectBox = parseFloat(
-  movieSelectBox.options[movieSelectBox.selectedIndex].value
-);
-let ticketPriceFromStorage = parseFloat(
-  localStorage.getItem("selectedMoviePrice")
-);
-let currentTicketPrice = ticketPriceFromStorage
-  ? ticketPriceFromStorage
-  : ticketPriceFromSelectBox;
-// current selectedMovieIndex
-let selectedMovieIndexFromSelectBox = movieSelectBox.selectedIndex;
-let selectedMovieIndexFromStorage = localStorage.getItem("selectedMovieIndex");
-let currentMovieIndex = selectedMovieIndexFromStorage
-  ? selectedMovieIndexFromStorage
-  : selectedMovieIndexFromSelectBox;
-// Initialize functions
-window.onload = () => {
-  //refresh sonrası son seçili filmin selectbox a eklenmesi
-  movieSelectBox.selectedIndex = currentMovieIndex;
-  //önce koltuklar selected yapılıyor
-  displayUI();
-  //sonra hesaplama ve info güncelleniyor
-  updateMovieInfo(currentTicketPrice);
-};
+//önce localStorage sonra selectBox
+//initial value == movieSelectBox.value
+//movieSelectBox.options[movieSelectBox.selectedIndex].value == movieSelectBox.value
+//(sayfa yüklenince en güncel movie seat price)
+let currentTicketPrice = localStorage.getItem("selectedMoviePrice")
+  ? localStorage.getItem("selectedMoviePrice")
+  : movieSelectBox.options[movieSelectBox.selectedIndex].value;
 
-// Movie select event
+//movieIndex (sayfa yüklenince en güncel movie index)
+let currentMovieIndex = localStorage.getItem("selectedMovieIndex")
+  ? localStorage.getItem("selectedMovieIndex")
+  : movieSelectBox.selectedIndex;
+
+window.onload = () => {
+  displaySeats();
+  updateMovieInfo();
+};
+//change film and localStorage
 movieSelectBox.addEventListener("change", (e) => {
   let ticketPrice = e.target.value;
-  let seatNumber = e.target.selectedIndex;
-  updateMovieInfo(ticketPrice);
-  setMovieDataToStorage(seatNumber, ticketPrice);
+  let movieIndex = e.target.selectedIndex;
+  console.log(movieIndex);
+  updateMovieInfo();
+  setMovieDataToLocalStorage(ticketPrice, movieIndex);
 });
-
-// Seat click event(capturing)
+//add to storage
+const setMovieDataToLocalStorage = (ticketPrice, movieIndex) => {
+  localStorage.setItem("selectedMovieIndex", movieIndex);
+  localStorage.setItem("selectedMoviePrice", ticketPrice);
+};
+//capturing
 container.addEventListener("click", (e) => {
+  console.log(e.target.classList);
   if (
     e.target.classList.contains("seat") &&
     !e.target.classList.contains("occupied")
   ) {
     e.target.classList.toggle("selected");
-    //storage daki son filmin price ı update fonk parametre olarak veriliyor.
-    updateMovieInfo(currentTicketPrice);
+    console.log(e.target.classList);
   }
+  // if(e.target.classList.contains("seat") && e.target.classList.contains("occupied")){
+  //     alert("lütfen rezerve olmayan koltuk seçiniz!");
+  // }
+  updateMovieInfo();
 });
+//update paragraph and calculation
+const updateMovieInfo = () => {
+  let selectedSeats = document.querySelectorAll(".row .seat.selected");
+  // let selectedSeats2 = document.querySelectorAll(".row .seat .selected");
 
-// Update total and count
-const updateMovieInfo = (price) => {
-  // movieSelectBox.selectedIndex = currentMovieIndex;
-  // .class .class matches any elements of class .class that are descendants of another element with the class .class.
-  // .class.class matches any element with both classes.
-  const selectedSeats = document.querySelectorAll(".row .seat.selected");
-
-  //Array.prototype.forEach()
-  //NodeList.prototype.forEach()
-  //Array.prototype.map()
-  //Array.prototype.filter()
-  //Array.prototype.reduce()
-
-  //selected koltuklara index atama, sonra array a alma
-  console.log(Array.from(selectedSeats));
-  const seatsIndexArray = [...selectedSeats].map((seat) =>
+  let selectedSeatsIndexArray = [...selectedSeats].map((seat) =>
     [...allSeats].indexOf(seat)
   );
+  // console.log(selectedSeatsIndexArray);
+  localStorage.setItem(
+    "selectedSeats",
+    JSON.stringify(selectedSeatsIndexArray)
+  );
 
-  console.log(seatsIndexArray);
-
-  localStorage.setItem("selectedSeats", JSON.stringify(seatsIndexArray));
-
-  const selectedSeatsCount = selectedSeats.length;
-  count.innerText = selectedSeatsCount;
-  total.innerText = selectedSeatsCount * price;
+  count.innerText = selectedSeatsIndexArray.length;
+  total.innerText = selectedSeatsIndexArray.length * movieSelectBox.value;
   film.innerText =
     movieSelectBox.options[movieSelectBox.selectedIndex].innerText.split(
       "("
     )[0];
 };
 
-const setMovieDataToStorage = (movieIndex, moviePrice) => {
-  localStorage.setItem("selectedMovieIndex", movieIndex);
-  localStorage.setItem("selectedMoviePrice", moviePrice);
-};
-
-// Get data from localstorage and populate UI
-const displayUI = () => {
-  const selectedSeatsFromStorage = JSON.parse(
+//after refresh get selectedSeats and add class "selected"
+const displaySeats = () => {
+  movieSelectBox.selectedIndex = currentMovieIndex;
+  let selectedSeatsFromStorage = JSON.parse(
     localStorage.getItem("selectedSeats")
   );
+  console.log(selectedSeatsFromStorage);
   if (
     selectedSeatsFromStorage !== null &&
     selectedSeatsFromStorage.length > 0
@@ -101,10 +89,8 @@ const displayUI = () => {
     allSeats.forEach((seat, index) => {
       // selectedSeats.indexOf(index) == -1 ==> false
       // selectedSeats.indexOf(index) > -1 ==> true
-      // occupied olmayanların indexi localstorge da varsa onları selected yap refresh sonrası veri basma kısmı
       if (selectedSeatsFromStorage.indexOf(index) > -1) {
         seat.classList.add("selected");
-        // seat.classList.toggle('occupied');
       }
     });
   }
