@@ -4,19 +4,19 @@ const notOccupiedSeats = document.querySelector(
   ".container .seat:not(.occupied)"
 );
 const count = document.getElementById("count");
-const film = document.getElementById("film");
+const cinema = document.getElementById("cinema");
 const total = document.getElementById("total");
 const movieSelectBox = document.getElementById("movie");
 
-//önce localStorage sonra selectBox
+//first-localStorage, second-selectBox
 //initial value == movieSelectBox.value
 //movieSelectBox.options[movieSelectBox.selectedIndex].value == movieSelectBox.value
-//(sayfa yüklenince en güncel movie seat price)
+//update movie seat price
 let currentTicketPrice = localStorage.getItem("selectedMoviePrice")
   ? localStorage.getItem("selectedMoviePrice")
   : movieSelectBox.options[movieSelectBox.selectedIndex].value;
 
-//movieIndex (sayfa yüklenince en güncel movie index)
+//movieIndex (update movie index)
 let currentMovieIndex = localStorage.getItem("selectedMovieIndex")
   ? localStorage.getItem("selectedMovieIndex")
   : movieSelectBox.selectedIndex;
@@ -25,7 +25,7 @@ window.onload = () => {
   displaySeats();
   updateMovieInfo();
 };
-//change film and localStorage
+//change movie and localStorage
 movieSelectBox.addEventListener("change", (e) => {
   let ticketPrice = e.target.value;
   let movieIndex = e.target.selectedIndex;
@@ -49,7 +49,7 @@ container.addEventListener("click", (e) => {
     console.log(e.target.classList);
   }
   // if(e.target.classList.contains("seat") && e.target.classList.contains("occupied")){
-  //     alert("lütfen rezerve olmayan koltuk seçiniz!");
+  //     alert("");
   // }
   updateMovieInfo();
 });
@@ -69,7 +69,7 @@ const updateMovieInfo = () => {
 
   count.innerText = selectedSeatsIndexArray.length;
   total.innerText = selectedSeatsIndexArray.length * movieSelectBox.value;
-  film.innerText =
+  cinema.innerText =
     movieSelectBox.options[movieSelectBox.selectedIndex].innerText.split(
       "("
     )[0];
